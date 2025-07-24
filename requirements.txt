@@ -1,1 +1,9 @@
-RPy2
+ipykernel
+ipywidgets
+itables
+jupyter
+matplotlib
+matplotlib-venn
+plotly
+seaborn
+tqdm
