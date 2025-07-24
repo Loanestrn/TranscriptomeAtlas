@@ -1,3 +1,23 @@
+# Function to load or install a CRAN package
+load_cran_library <- function(package_name) {
+  if (!require(package_name, character.only = TRUE)) {
+    install.packages(package_name, dependencies = TRUE)
+    library(package_name, character.only = TRUE)
+  }
+}
+
+# Function to load or install a Bioconductor package
+
+load_bioconductor_library <- function(package_name) {
+  if (!requireNamespace(package_name, quietly = TRUE)) {
+    if (!requireNamespace("BiocManager", quietly = TRUE)) {
+      install.packages("BiocManager")
+    }
+    BiocManager::install(package_name)
+  }
+  library(package_name, character.only = TRUE)
+}
+
 library('WGCNA')
 library('DESeq2')
 library('GEOquery')
@@ -5,9 +25,11 @@ library('tidyverse')
 library('CorLevelPlot')
 library('gridExtra')
 
-counts_data<-read.csv("C:/Users/loane/OneDrive/Documents/Stage_ete/projetun/geo/retine_rpe.csv")
+input='/home/sturny/stageLGM/TranscriptomeAtlas/benchmarks/data/1_input'
+
 
 #preparer data
+counts_data<-read.csv(file.path(input,"retine_rpe.csv"))
 counts_data <- lapply(counts_data, function(col) if (is.numeric(col)) round(col) else col)
 counts_data<- as.data.frame(counts_data)%>%
   column_to_rownames(var='ENSEMBL')
@@ -136,7 +158,7 @@ CorLevelPlot(
   col = c("blue1", "skyblue", "white", "pink", "red"))
 
 
-#voir les genes associés
+###voir les genes associés
 module.gene.mapping<-as.data.frame(bwnet$colors)
 module.gene.mapping %>%
   filter(`bwnet$colors`=="orange") %>%
