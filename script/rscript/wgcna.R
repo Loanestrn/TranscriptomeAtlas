@@ -25,14 +25,17 @@ library('tidyverse')
 library('CorLevelPlot')
 library('gridExtra')
 
-input='/home/sturny/stageLGM/TranscriptomeAtlas/benchmarks/data/1_input'
+
 
 
 #preparer data
-counts_data<-read.csv(file.path(input,"retine_rpe.csv"))
+counts_data <- read.csv("~/Stage_ete/projetun/geo/retine_rpe.csv", header = TRUE, sep = ",")
+colData<-read.csv("~/Stage_ete/projetun/geo/metadata.csv", header = TRUE, sep = ",")
 counts_data <- lapply(counts_data, function(col) if (is.numeric(col)) round(col) else col)
 counts_data<- as.data.frame(counts_data)%>%
   column_to_rownames(var='ENSEMBL')
+rownames(colData) <- colData$SRR 
+colData$SRR <- NULL
 
 
 gsg<-goodSamplesGenes(t(counts_data))
@@ -58,14 +61,14 @@ ggplot(pca.dat,aes(PC1,PC2))+
        y=paste0('PC2: ',pca.var.percent[2], '%'))
 
 #les enlever
-samples.to.be.excluded<-c('SRR12807632')
-data.subset<-data[,!(colnames(data)%in%samples.to.be.excluded)]
+#samples.to.be.excluded<-c('SRR12807632')
+#data.subset<-data[,!(colnames(data)%in%samples.to.be.excluded)]
 
 #normalisation
 colData<-colData%>%
-  filter(!rownames(.)%in%samples.to.be.excluded)
-all(colnames(data.subset)%in% rownames(colData))
-dds.wgcna<-DESeqDataSetFromMatrix(countData = data.subset, colData=colData, design=~Tissu)
+  filter(!rownames(.)%in%data)
+all(colnames(data)%in% rownames(colData))
+dds.wgcna<-DESeqDataSetFromMatrix(countData = data, colData=colData, design=~Tissu)
 assay(dds.wgcna)
 
 #remove all gene <10 pas posible car trop peu nombreux
@@ -130,7 +133,8 @@ plotDendroAndColors(
   guideHang = 0.05)
 
 
-# preparer les fichiers 
+# preparer les fichiers
+library('fastDummies')
 traits <- dummy_cols(colData, select_columns = "Tissu", remove_selected_columns = TRUE)
 traits$Tissu<-rownames(module_eigengenes)
 rownames(traits) <- traits$Tissu
@@ -142,9 +146,9 @@ traits$GSM<-NULL
 
 
 # Calcul des corrélations 
-nGenes<-ncol(norm_counts)
-module.tait.corr<-cor(module_eigengenes, tissu.out, use = 'p')
-module.tait.corr.pvals<-corPvalueStudent(module.tait.corr, nSamples)
+#nGenes<-ncol(norm_counts)
+#module.tait.corr<-cor(module_eigengenes, tissu.out, use = 'p')
+#module.tait.corr.pvals<-corPvalueStudent(module.tait.corr, nSamples)
 
 #heatmap
 heatmap_data <- merge(module_eigengenes, traits, by = "row.names")
